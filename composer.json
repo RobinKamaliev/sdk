@@ -1,0 +1,23 @@
+{
+  "name": "your-vendor/rabbitmq-sdk",
+  "description": "SDK for RabbitMQ interactions in PHP 7.1",
+  "type": "library",
+  "require": {
+    "php": "^7.1",
+    "php-amqplib/php-amqplib": "^2.11",
+    "psr/log": "^1.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "SdkEsb\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "SdkEsb\\Tests\\": "tests/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.5"
+  }
+}
