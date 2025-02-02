@@ -2,6 +2,7 @@
   "name": "sprosivracha/sdk-esb",
   "description": "SDK for RabbitMQ interactions in PHP 7.1 +",
   "type": "library",
+  "version": "0.0.1",
   "require": {
     "php": ">=7.1",
     "php-amqplib/php-amqplib": "3.5.4",
