@@ -9,17 +9,17 @@ class ConsumeConfig
     /**
      * @var string
      */
-    private $consumer_tag;
+    private $consumerTag;
 
     /**
      * @var bool
      */
-    private $no_local;
+    private $noLocal;
 
     /**
      * @var bool
      */
-    private $no_ack;
+    private $noAck;
 
     /**
      * @var bool
@@ -42,17 +42,17 @@ class ConsumeConfig
     private $arguments;
 
     public function __construct(
-        string $consumer_tag = '',
-        bool $no_local = false,
-        bool $no_ack = false,
+        string $consumerTag = '',
+        bool $noLocal = false,
+        bool $noAck = false,
         bool $exclusive = false,
         bool $nowait = false,
         ?bool $ticket = null,
         array $arguments = array()
     ) {
-        $this->consumer_tag = $consumer_tag;
-        $this->no_local = $no_local;
-        $this->no_ack = $no_ack;
+        $this->consumerTag = $consumerTag;
+        $this->noLocal = $noLocal;
+        $this->noAck = $noAck;
         $this->exclusive = $exclusive;
         $this->nowait = $nowait;
         $this->ticket = $ticket;
@@ -64,7 +64,7 @@ class ConsumeConfig
      */
     public function getConsumerTag(): string
     {
-        return $this->consumer_tag;
+        return $this->consumerTag;
     }
 
     /**
@@ -72,7 +72,7 @@ class ConsumeConfig
      */
     public function getNoLocal(): bool
     {
-        return $this->no_local;
+        return $this->noLocal;
     }
 
     /**
@@ -80,7 +80,7 @@ class ConsumeConfig
      */
     public function getNoAck(): bool
     {
-        return $this->no_ack;
+        return $this->noAck;
     }
 
     /**
