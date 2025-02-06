@@ -40,9 +40,7 @@ class Sdk
     public function init(): void
     {
         $connection = new Connection($this->config);
-
         $rabbitManager = new RabbitManager($connection);
-        $rabbitManager->declareExchange($this->config->getExchange());
 
         $this->publisher = $this->config->getCustomPublisher() ?? new Publisher($connection, $rabbitManager);
         $this->consume = $this->config->getCustomConsume() ?? new Consumer($connection, $rabbitManager);

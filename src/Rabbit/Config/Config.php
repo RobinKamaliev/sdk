@@ -46,7 +46,6 @@ class Config
         int $port,
         string $user,
         string $password,
-        string $exchange,
         callable $customPublisher = null,
         callable $customConsume = null
     )
@@ -55,7 +54,6 @@ class Config
         $this->port = $port;
         $this->user = $user;
         $this->password = $password;
-        $this->exchange = $exchange;
         $this->customPublisher = $customPublisher;
         $this->customConsume = $customConsume;
     }
@@ -90,14 +88,6 @@ class Config
     public function getPassword(): string
     {
         return $this->password;
-    }
-
-    /**
-     * @return string
-     */
-    public function getExchange(): string
-    {
-        return $this->exchange;
     }
 
     /**

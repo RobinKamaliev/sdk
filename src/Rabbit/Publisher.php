@@ -10,8 +10,9 @@ use PhpAmqpLib\Exception\AMQPConnectionClosedException;
 use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use SdkEsb\EventInterface;
 use SdkEsb\PublisherInterface;
-use SdkEsb\Rabbit\Config\PublishConfig;
+use SdkEsb\Rabbit\Config\PublisherConfig;
 use SdkEsb\Rabbit\Exceptions\FailedToSetupDeadLetterQueueException;
 use SdkEsb\Rabbit\Exceptions\SendPublishMessageException;
 
@@ -26,6 +27,9 @@ class Publisher implements PublisherInterface
     /** @var LoggerInterface|NullLogger */
     private $logger;
 
+    /** @var PublisherConfig */
+    private $publisherConfig;
+
     public function __construct(Connection $connection, RabbitManager $queueManager, LoggerInterface $logger = null)
     {
         $this->connection = $connection;
@@ -33,49 +37,77 @@ class Publisher implements PublisherInterface
         $this->logger = $logger ?: new NullLogger();
     }
 
-
     /**
      * Отправка сообщения
      *
-     * @param PublishConfig $publishConfig
+     * @param EventInterface $event
      * @return void
      * @throws FailedToSetupDeadLetterQueueException
      * @throws SendPublishMessageException
      */
-    public function publishMessage(PublishConfig $publishConfig): void
+    public function publishMessage(EventInterface $event): void
     {
-        $this->queueManager->setupDeadLetter(
-            $publishConfig->getExchange()
-        );
+        $this->queueManager->setupDeadLetter($event);
+
+        $message = $this->_makeMessage($event);
+        $publisherConfig = $this->getPublisherConfig();
 
         try {
-            $msg = new AMQPMessage($publishConfig->getMessage());
             $this->connection->getChannel()->basic_publish(
-                $msg,
-                $publishConfig->getExchange(),
-                $publishConfig->getRoutingKey(),
-                $publishConfig->getMandatory(),
-                $publishConfig->getImmediate(),
-                $publishConfig->getTicket()
+                new AMQPMessage($message),
+                'exchange',
+                $event->getEventName(),
+                $publisherConfig->getMandatory(),
+                $publisherConfig->getImmediate(),
+                $publisherConfig->getTicket()
             );
 
             $this->logger->info('Сообщение опубликовано', [
                 'direction' => 'publish',
-                'message' => $publishConfig->getMessage(),
-                'exchange' => $publishConfig->getExchange(),
-                'routing_key' => $publishConfig->getRoutingKey(),
+                'message' => $message,
+                'key' => $event->getKey(),
+                'routing_key' => $event->getEventName(),
             ]);
         } catch (AMQPChannelClosedException|AMQPConnectionClosedException|AMQPConnectionBlockedException $e) {
             $messageError = 'Не удалось опубликовать сообщение';
 
             $this->logger->error($messageError, [
                 'direction' => 'publish',
-                'message' => $e->getMessage(),
-                'exchange' => $publishConfig->getExchange(),
-                'routing_key' => $publishConfig->getRoutingKey(),
+                'message' => $message,
+                'key' => $event->getKey(),
+                'routing_key' => $event->getEventName(),
             ]);
 
             throw new SendPublishMessageException($messageError . $e->getMessage());
         }
+    }
+
+    /**
+     * @param EventInterface $event
+     * @return string
+     */
+    private function _makeMessage(EventInterface $event): string
+    {
+        return json_encode([
+            'eventName' => $event->getEventName(),
+            'key' => $event->getKey(),
+            'timestamp' => date('Y-m-d H:i:s'),
+            'data' => $event->getData(),
+        ]);
+    }
+
+    public function setConfig(PublisherConfig $publishConfig): Publisher
+    {
+        $this->publisherConfig = $publishConfig;
+        return $this;
+    }
+
+    private function getPublisherConfig(): PublisherConfig
+    {
+        if ($this->publisherConfig === null) {
+            return new PublisherConfig();
+        }
+
+        return $this->publisherConfig;
     }
 }

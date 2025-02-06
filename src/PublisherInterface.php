@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace SdkEsb;
 
-use SdkEsb\Rabbit\Config\PublishConfig;
-
 interface PublisherInterface
 {
     /**
-     * @param PublishConfig $publishConfig
+     * @param EventInterface $event
      * @return void
      */
-    public function publishMessage(PublishConfig $publishConfig): void;
+    public function publishMessage(EventInterface $event): void;
 }

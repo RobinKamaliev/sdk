@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SdkEsb\Rabbit;
 
 use PhpAmqpLib\Exception\AMQPTimeoutException;
+use SdkEsb\EventInterface;
 use SdkEsb\Rabbit\Exceptions\FailedDeclareQueueException;
 use SdkEsb\Rabbit\Exceptions\FailedToSetupDeadLetterQueueException;
 use SdkEsb\Rabbit\Exceptions\QueueBindException;
@@ -36,43 +37,20 @@ class RabbitManager
     }
 
     /**
-     * Создаем exchange.
-     *
-     * @param string $exchange
-     * @param string $type
-     * @return void
-     * @throws RabbitMQException
-     */
-    public function declareExchange(string $exchange, string $type = 'topic'): void
-    {
-        try {
-            $this->connection->getChannel()->exchange_declare(
-                $exchange,
-                $type,
-                false,
-                true,
-                false
-            );
-        } catch (\Exception $e) {
-            throw new RabbitMQException('Не удалось создать обменник: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * Создаем Dead Letter.
      *
-     * @param string $exchange
+     * @param EventInterface $event
      * @param string $type
      * @throws FailedToSetupDeadLetterQueueException
      */
     public function setupDeadLetter(
-        string $exchange,
+        EventInterface $event,
         string $type = 'topic'
     ): void {
         try {
-            $deadLetterExchange = 'dead_letter_exchange_' . $exchange;
-            $deadLetterQueue = 'dead_letter_queue_' . $exchange;
-            $deadLetterRoutingKey = 'dead_routing_key_' . $exchange;
+            $deadLetterExchange = 'dead_letter_exchange.' . $event->getEventName();
+            $deadLetterQueue = 'dead_letter_queue.' . $event->getEventName();
+            $deadLetterRoutingKey = 'dead_routing_key.' . $event->getEventName();
 
             $this->connection->getChannel()->exchange_declare(
                 $deadLetterExchange,
@@ -89,17 +67,16 @@ class RabbitManager
                 false,
                 false,
                 false,
-                ['x-dead-letter-exchange' => ['S', $exchange]]
+                ['x-dead-letter-exchange' => ['S', 'exchange']]
             );
 
-            $this->queueBind($deadLetterQueue, $deadLetterExchange, $deadLetterRoutingKey);
+            $this->queueBind($deadLetterQueue, $deadLetterRoutingKey, $deadLetterExchange);
         } catch (\Exception $e) {
             throw new FailedToSetupDeadLetterQueueException(
                 'Не удалось настроить очередь неотправленных писем: ' . $e->getMessage()
             );
         }
     }
-
 
     /**
      * Связываем queue с exchange по routingKey
@@ -110,7 +87,7 @@ class RabbitManager
      * @return void
      * @throws QueueBindException
      */
-    public function queueBind(string $queue, string $exchange, string $routingKey): void
+    public function queueBind(string $queue, string $routingKey, string $exchange = 'exchange'): void
     {
         try {
             $this->connection->getChannel()->queue_bind($queue, $exchange, $routingKey);

@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace SdkEsb;
 
-use SdkEsb\Rabbit\Config\ConsumeConfig;
-
 interface ConsumerInterface
 {
     /**
-     * @param ConsumeConfig $config
+     * @param string $queue
+     * @param HandlerInterface $handler
      * @return void
      */
-    public function consumeMessage(ConsumeConfig $config): void;
+    public function consumeMessage(string $queue, HandlerInterface $handler): void;
 }

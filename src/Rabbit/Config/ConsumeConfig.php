@@ -9,16 +9,6 @@ class ConsumeConfig
     /**
      * @var string
      */
-    private $queue;
-
-    /**
-     * @var callable|null
-     */
-    private $callback;
-
-    /**
-     * @var string
-     */
     private $consumer_tag;
 
     /**
@@ -52,8 +42,6 @@ class ConsumeConfig
     private $arguments;
 
     public function __construct(
-        string $queue,
-        callable $callback = null,
         string $consumer_tag = '',
         bool $no_local = false,
         bool $no_ack = false,
@@ -62,8 +50,6 @@ class ConsumeConfig
         ?bool $ticket = null,
         array $arguments = array()
     ) {
-        $this->queue = $queue;
-        $this->callback = $callback;
         $this->consumer_tag = $consumer_tag;
         $this->no_local = $no_local;
         $this->no_ack = $no_ack;
@@ -71,22 +57,6 @@ class ConsumeConfig
         $this->nowait = $nowait;
         $this->ticket = $ticket;
         $this->arguments = $arguments;
-    }
-
-    /**
-     * @return string
-     */
-    public function getQueue(): string
-    {
-        return $this->queue;
-    }
-
-    /**
-     * @return callable|null
-     */
-    public function getCallback(): ?callable
-    {
-        return $this->callback;
     }
 
     /**
